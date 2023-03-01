@@ -13,6 +13,7 @@ public class SerializableAbilityEntity implements Serializable {
     private float abilityEnd = 0;
     private float cooldownEnd = 0;
     private float cooldownStart = 0;
+    private float damage = 0;
     int xPos = 0;
     int yPos = 0;
     int width = 0;
