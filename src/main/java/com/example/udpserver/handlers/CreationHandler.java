@@ -1,17 +1,16 @@
 package com.example.udpserver.handlers;
 
-import com.example.udpserver.enums.FacingDirection;
-import com.example.udpserver.models.GameState;
-import com.example.udpserver.models.HeroEntity;
+import com.serializers.SerializableGameState;
+import com.serializers.SerializableHeroEntity;
 
 import java.util.ArrayList;
 import java.util.Map;
 
 public class CreationHandler {
-    public static void handleCreation(GameState gameState, String playerId, Map<String, String> args) {
+    public static void handleCreation(SerializableGameState gameState, String playerId, Map<String, String> args) {
         if (!gameState.getConnectedPlayers().containsKey(playerId)) {
             args.get("createHero");
-            HeroEntity newHero = HeroEntity.builder().id(playerId).heroName(args.get("createHero")).build();
+            SerializableHeroEntity newHero = SerializableHeroEntity.builder().id(playerId).heroName(args.get("createHero")).build();
             newHero.setHealth(1000);
             newHero.setXPos(0);
             newHero.setYPos(0);
@@ -19,7 +18,7 @@ public class CreationHandler {
             newHero.setHeight(200);
             newHero.setMoving(false);
             newHero.setAttacking(false);
-            newHero.setFacingDirection(FacingDirection.NONE);
+            newHero.setFacingDirection("none");
             newHero.setMovingEnd(0);
             newHero.setFalling(false);
             newHero.setJumping(false);

@@ -1,6 +1,8 @@
 package com.example.udpserver.handlers;
 
-import com.example.udpserver.models.GameState;
+import com.serializers.SerializableAbilityEntity;
+import com.serializers.SerializableGameState;
+import com.serializers.SerializableHeroEntity;
 import com.serializers.SerializedHero;
 import lombok.Data;
 import org.apache.tomcat.util.json.JSONParser;
@@ -11,6 +13,8 @@ import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -27,11 +31,11 @@ public class NetworkHandler {
    public static final int SERVER_PORT = 8086;
 
    private Map<String, String> mappedJsonString;
-   private GameState gameState;
+   private SerializableGameState gameState;
 
    private ApplicationContext applicationContext;
    private JSONParser jsonParser;
-   public NetworkHandler (GameState gameState) {
+   public NetworkHandler (SerializableGameState gameState) {
        this.gameState = gameState;
        try {
            serverSocket = new DatagramSocket(SERVER_PORT);
@@ -66,7 +70,29 @@ public class NetworkHandler {
                    objectOutputStream.close();
                    serverSocket.send(new DatagramPacket(outgoingDatagramPacketBuffer, outgoingDatagramPacketBuffer.length,
                        incomingDatagramPacket.getAddress(), incomingDatagramPacket.getPort()));
-               } else {
+               } else if (mappedJsonString.containsKey("test")) {
+                   String[] args = mappedJsonString.get("test").split("_");
+                   String playerId = args[1];
+                   String heroName = args[0];
+//                   System.out.println("PlayerId: " + playerId + " and the heroName: " + heroName);
+                   SerializableAbilityEntity abilityEntity = SerializableAbilityEntity.builder().abilityName("pumpkin_1.png").build();
+                   SerializableHeroEntity heroEntity = SerializableHeroEntity.builder().heroName("pumpkin").build();
+                   SerializableGameState serializableGameState = new SerializableGameState();
+                   List<SerializableAbilityEntity> listOfAbilities = new ArrayList<>();
+                   listOfAbilities.add(abilityEntity);
+                   heroEntity.setAbilities(listOfAbilities);
+                   serializableGameState.getConnectedPlayers().put(playerId, heroEntity);
+                   serializableGameState.getConnectedPlayers().put(playerId + "new", heroEntity);
+                   ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                   ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+                   objectOutputStream.writeObject(serializableGameState);
+//                   objectOutputStream.writeObject(heroEntity);
+//                   objectOutputStream.writeObject(abilityEntity);
+                   outgoingDatagramPacketBuffer = byteArrayOutputStream.toByteArray();
+                   objectOutputStream.close();
+                   serverSocket.send(new DatagramPacket(outgoingDatagramPacketBuffer, outgoingDatagramPacketBuffer.length,
+                           incomingDatagramPacket.getAddress(), incomingDatagramPacket.getPort()));
+               }else {
                    System.out.println("it is not a command");
                }
            } catch (Exception e) {

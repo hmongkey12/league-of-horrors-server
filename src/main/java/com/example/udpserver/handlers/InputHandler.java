@@ -1,6 +1,6 @@
 package com.example.udpserver.handlers;
 
-import com.example.udpserver.models.GameState;
+import com.serializers.SerializableGameState;
 
 import java.util.Map;
 
@@ -12,7 +12,7 @@ public class InputHandler {
 
     private final int MOVESPEED = 5;
 
-    public static void handleInput(GameState gameState, String playerId, Map<String, String> command) {
+    public static void handleInput(SerializableGameState gameState, String playerId, Map<String, String> command) {
         if (command.values().contains("left")) {
             System.out.println(gameState.getConnectedPlayers().get(playerId).getHeroName());
         } else if (command.values().contains("right")) {
