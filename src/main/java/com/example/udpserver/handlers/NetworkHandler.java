@@ -1,19 +1,16 @@
 package com.example.udpserver.handlers;
 
 import com.example.udpserver.models.GameState;
-import com.example.udpserver.serializers.SerializedHero;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.serializers.SerializedHero;
 import lombok.Data;
 import org.apache.tomcat.util.json.JSONParser;
-import org.json.simple.JSONObject;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 @Data
@@ -61,7 +58,12 @@ public class NetworkHandler {
                } else if(mappedJsonString.containsKey("createHero")) {
                    String playerId = String.valueOf(incomingDatagramPacket.getPort());
                    CreationHandler.handleCreation(gameState, playerId, mappedJsonString);
-                   outgoingDatagramPacketBuffer = gameState.getConnectedPlayers().toString().getBytes();
+                   SerializedHero outGoingSerializedHero = new SerializedHero( 12 ,"bob");
+                   ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                   ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+                   objectOutputStream.writeObject(outGoingSerializedHero);
+                   outgoingDatagramPacketBuffer = byteArrayOutputStream.toByteArray();
+                   objectOutputStream.close();
                    serverSocket.send(new DatagramPacket(outgoingDatagramPacketBuffer, outgoingDatagramPacketBuffer.length,
                        incomingDatagramPacket.getAddress(), incomingDatagramPacket.getPort()));
                } else {
