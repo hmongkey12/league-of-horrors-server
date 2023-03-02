@@ -23,7 +23,7 @@ public class UpdateHandler {
         float elapsedJumpingTime = (float) Math.floor((jumpEnd - jumpStart) / 1000);
 
 
-        if (gameState.getConnectedPlayers().get(playerId).isAttacking() && elapsedAttackTime >= .5) {
+        if (gameState.getConnectedPlayers().get(playerId).isAttacking() && elapsedAttackTime >= 5) {
             gameState.getConnectedPlayers().get(playerId).setAttacking(false);
             gameState.getConnectedPlayers().get(playerId).setAttackStart(0);
             gameState.getConnectedPlayers().get(playerId).setAttackEnd(0);

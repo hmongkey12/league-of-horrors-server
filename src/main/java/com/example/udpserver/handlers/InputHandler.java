@@ -40,7 +40,6 @@ public class InputHandler {
         !gameState.getConnectedPlayers().get(playerId).isJumping() && !gameState.getConnectedPlayers().get(playerId).isFalling()) {
             gameState.getConnectedPlayers().get(playerId).setJumping(true);
         } else if (command.equals("skill1")) {
-            System.out.println("is attacking");
             int yPos = gameState.getConnectedPlayers().get(playerId).getYPos();
             int xPos = gameState.getConnectedPlayers().get(playerId).getXPos();
             gameState.getConnectedPlayers().get(playerId).setAttacking(true);

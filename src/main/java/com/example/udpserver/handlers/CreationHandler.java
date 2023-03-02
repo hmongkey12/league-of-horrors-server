@@ -16,6 +16,7 @@ public class CreationHandler {
     private static final String ABILITY_TWO_SUFFIX = "_2";
 
     public static void handleCreation(SerializableGameState gameState, String playerId, String heroName, Map<String, String> args) {
+        System.out.println(gameState.toString());
         if (!gameState.getConnectedPlayers().containsKey(playerId)) {
             SerializableHeroEntity newHero = SerializableHeroEntity.builder().id(playerId).heroName(heroName).build();
             newHero.setHealth(1000);
@@ -38,6 +39,7 @@ public class CreationHandler {
             }
             gameState.getConnectedPlayers().put(playerId, newHero);
         }
+        System.out.println(gameState.toString());
     }
 
     private static List<SerializableAbilityEntity> createAbilities(String abilityName) {
