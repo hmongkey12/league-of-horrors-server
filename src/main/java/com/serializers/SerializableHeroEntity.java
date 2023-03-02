@@ -1,16 +1,14 @@
-package com.example.udpserver.models;
+package com.serializers;
 
-import com.example.udpserver.enums.FacingDirection;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @Builder
-public class HeroEntity {
+public class SerializableHeroEntity implements Serializable {
     private String heroName;
     private int xPos = 0;
     private int yPos = 0;
@@ -18,12 +16,15 @@ public class HeroEntity {
     private int height = 200;
     private boolean isAttacking = false;
     private boolean isMoving = false;
-    private List<AbilityEntity> abilities;
+    private List<SerializableAbilityEntity> abilities;
     private String id;
     private boolean isFalling = false;
     private boolean isJumping = false;
+    private float jumpStart = 0;
     private int health = 1000;
-    private int movingStart = 0;
-    private int movingEnd = 0;
-    private FacingDirection facingDirection = FacingDirection.NONE;
+    private float movingStart = 0;
+    private float movingEnd = 0;
+    private float attackStart = 0;
+    private float attackEnd = 0;
+    private String facingDirection = "none";
 }
