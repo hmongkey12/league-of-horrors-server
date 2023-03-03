@@ -1,19 +1,17 @@
 package com.example.udpserver.handlers;
 
+import com.serializers.BasicSerializer;
+import com.serializers.SerializableGameStateDecorator;
 import lombok.Data;
 
 import com.serializers.SerializableGameState;
-import org.apache.http.client.entity.GzipCompressingEntity;
 import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.context.ApplicationContext;
 
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Map;
-import java.util.zip.GZIPOutputStream;
 
 @Data
 public class NetworkHandler {
@@ -62,26 +60,14 @@ public class NetworkHandler {
                    String playerId = args[1];
                    String heroName = args[0];
                    CreationHandler.handleCreation(gameState, playerId, heroName, mappedJsonString);
-                   ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-                   ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-                   objectOutputStream.writeObject(gameState);
-                   outgoingDatagramPacketBuffer = byteArrayOutputStream.toByteArray();
-                   objectOutputStream.close();
-                   byteArrayOutputStream.close();
-
+                   SerializableGameStateDecorator serializableGameStateDecorator = new SerializableGameStateDecorator(new BasicSerializer());
+                   outgoingDatagramPacketBuffer = serializableGameStateDecorator.serialize(gameState);
                    serverSocket.send(new DatagramPacket(outgoingDatagramPacketBuffer, outgoingDatagramPacketBuffer.length,
                        incomingDatagramPacket.getAddress(), incomingDatagramPacket.getPort()));
                }  else if (mappedJsonString.containsKey("getUpdate")) {
                    UpdateHandler.handleUpdates(gameState, mappedJsonString.get("getUpdate"));
-                   ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-                   ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-                   objectOutputStream.writeObject(gameState);
-
-                   outgoingDatagramPacketBuffer = byteArrayOutputStream.toByteArray();
-                   objectOutputStream.close();
-                   byteArrayOutputStream.close();
+                   SerializableGameStateDecorator serializableGameStateDecorator = new SerializableGameStateDecorator(new BasicSerializer());
+                   outgoingDatagramPacketBuffer = serializableGameStateDecorator.serialize(gameState);
                    serverSocket.send(new DatagramPacket(outgoingDatagramPacketBuffer, outgoingDatagramPacketBuffer.length,
                            incomingDatagramPacket.getAddress(), incomingDatagramPacket.getPort()));
                } else {
