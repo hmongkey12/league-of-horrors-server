@@ -1,5 +1,6 @@
 package com.example.udpserver.handlers;
 
+import com.example.udpserver.shared.DatagramCompressor;
 import com.serializers.BasicSerializer;
 import com.serializers.SerializableGameStateDecorator;
 import lombok.Data;
@@ -61,6 +62,9 @@ public class NetworkHandler {
                    String heroName = args[0];
                    CreationHandler.handleCreation(gameState, playerId, heroName, mappedJsonString);
                    SerializableGameStateDecorator serializableGameStateDecorator = new SerializableGameStateDecorator(new BasicSerializer());
+//                   byte[] serializedData = serializableGameStateDecorator.serialize(gameState);
+//                   byte[] compressedData = DatagramCompressor.compress(serializedData);
+//                   outgoingDatagramPacketBuffer = compressedData;
                    outgoingDatagramPacketBuffer = serializableGameStateDecorator.serialize(gameState);
                    serverSocket.send(new DatagramPacket(outgoingDatagramPacketBuffer, outgoingDatagramPacketBuffer.length,
                        incomingDatagramPacket.getAddress(), incomingDatagramPacket.getPort()));
