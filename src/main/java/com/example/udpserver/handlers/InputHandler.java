@@ -3,11 +3,19 @@ package com.example.udpserver.handlers;
 import com.serializers.SerializableGameState;
 import com.serializers.SerializableHeroEntity;
 
+/**
+ The InputHandler class handles the input received from the player and updates the game state accordingly.
+ */
 public class InputHandler {
     private static final int MOVESPEED = 5;
     private static final int BOUNDARY_LEFT = 0;
     private static final int BOUNDARY_RIGHT = 3600;
 
+    /**
+     Handles the input received from the player and updates the game state accordingly.
+     @param gameState SerializableGameState Object that has the entire gamestate, can be retrieved via playerId which is inside the args array.
+     @param args The input received from the player, such as moving and attacking commands.
+     */
     public static void handleInput(SerializableGameState gameState, String[] args) {
         String playerId = args[1];
         String command = args[0];
