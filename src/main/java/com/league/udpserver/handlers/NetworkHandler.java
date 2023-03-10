@@ -59,7 +59,7 @@ public class NetworkHandler {
                    String[] args = mappedJsonString.get("createHero").split("_");
                    String playerId = args[1];
                    String heroName = args[0];
-                   CreationHandler.handleCreation(gameState, playerId, heroName, mappedJsonString);
+                   CreationHandler.handleCreation(gameState, playerId, heroName);
                    SerializableGameStateDecorator serializableGameStateDecorator = new SerializableGameStateDecorator(new BasicSerializer());
 //                   byte[] serializedData = serializableGameStateDecorator.serialize(gameState);
 //                   byte[] compressedData = DatagramCompressor.compress(serializedData);

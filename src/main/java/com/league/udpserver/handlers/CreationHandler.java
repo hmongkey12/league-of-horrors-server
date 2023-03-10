@@ -15,7 +15,7 @@ public class CreationHandler {
     private static final String ABILITY_ONE_SUFFIX = "_1";
     private static final String ABILITY_TWO_SUFFIX = "_2";
 
-    public static void handleCreation(SerializableGameState gameState, String playerId, String heroName, Map<String, String> args) {
+    public static void handleCreation(SerializableGameState gameState, String playerId, String heroName) {
         SerializableHeroEntity playerEntity = gameState.getConnectedPlayers().getOrDefault(playerId, null);
         if (playerEntity == null) {
             playerEntity = SerializableHeroEntity.builder()

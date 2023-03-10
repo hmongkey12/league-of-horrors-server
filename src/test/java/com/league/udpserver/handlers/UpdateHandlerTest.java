@@ -24,15 +24,15 @@ public class UpdateHandlerTest {
         when(secondEntity.getWidth()).thenReturn(10);
         when(secondEntity.getHeight()).thenReturn(10);
 
-        // invoke doEntitiesCollide using reflection
+        // execute doEntitiesCollide using reflection
         Method doEntitiesCollideMethod = UpdateHandler.class.getDeclaredMethod("doEntitiesCollide", SerializableHeroEntity.class, SerializableAbilityEntity.class);
         doEntitiesCollideMethod.setAccessible(true);
         boolean result = (boolean) doEntitiesCollideMethod.invoke(null, firstEntity, secondEntity);
 
-        // test entities that overlap
+        // verify entities overlap
         assertTrue(result);
 
-        // move secondEntity out of range and test again
+        // move secondEntity out of range and verify
         when(secondEntity.getXPos()).thenReturn(20);
         result = (boolean) doEntitiesCollideMethod.invoke(null, firstEntity, secondEntity);
         assertFalse(result);
