@@ -1,4 +1,4 @@
-package com.example.udpserver.handlers;
+package com.league.udpserver.handlers;
 import com.serializers.SerializableAbilityEntity;
 import com.serializers.SerializableHeroEntity;
 import org.junit.Test;

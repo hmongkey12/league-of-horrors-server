@@ -1,6 +1,5 @@
-package com.example.udpserver.handlers;
+package com.league.udpserver.handlers;
 
-import com.example.udpserver.shared.DatagramCompressor;
 import com.serializers.BasicSerializer;
 import com.serializers.SerializableGameStateDecorator;
 import lombok.Data;

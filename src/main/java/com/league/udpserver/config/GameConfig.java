@@ -1,4 +1,4 @@
-package com.example.udpserver.config;
+package com.league.udpserver.config;
 
 import org.springframework.context.annotation.Configuration;
 
