@@ -1,4 +1,4 @@
-package com.example.udpserver.shared;
+package com.league.udpserver.shared;
 
 import org.springframework.beans.factory.annotation.Value;
 

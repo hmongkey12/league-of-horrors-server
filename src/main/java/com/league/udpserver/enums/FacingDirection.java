@@ -1,4 +1,4 @@
-package com.example.udpserver.enums;
+package com.league.udpserver.enums;
 
 public enum FacingDirection {
     LEFT("left"), RIGHT("right"), NONE("none");

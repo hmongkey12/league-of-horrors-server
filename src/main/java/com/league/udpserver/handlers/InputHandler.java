@@ -1,4 +1,4 @@
-package com.example.udpserver.handlers;
+package com.league.udpserver.handlers;
 
 import com.serializers.SerializableGameState;
 import com.serializers.SerializableHeroEntity;
