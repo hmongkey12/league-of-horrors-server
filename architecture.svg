@@ -1,0 +1,21 @@
+<svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Client -->
+  <rect x="20" y="75" width="100" height="50" rx="10" fill="#ECEFF1"/>
+  <text x="70" y="105" text-anchor="middle" font-size="14">Client</text>
+
+  <!-- Dedicated Game Server -->
+  <rect x="240" y="25" width="100" height="50" rx="10" fill="#ECEFF1"/>
+  <text x="290" y="55" text-anchor="middle" font-size="14">Dedicated Game Server</text>
+
+  <!-- Database -->
+  <rect x="460" y="75" width="100" height="50" rx="10" fill="#ECEFF1"/>
+  <text x="510" y="105" text-anchor="middle" font-size="14">Database</text>
+
+  <!-- Client to Dedicated Game Server -->
+  <line x1="70" y1="100" x2="240" y2="50" stroke="black" stroke-width="2"/>
+
+  <!-- Dedicated Game Server to Database -->
+  <line x1="340" y1="25" x2="460" y2="75" stroke="black" stroke-width="2"/>
+
+</svg>
