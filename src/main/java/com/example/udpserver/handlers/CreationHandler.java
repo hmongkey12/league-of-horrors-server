@@ -16,30 +16,27 @@ public class CreationHandler {
     private static final String ABILITY_TWO_SUFFIX = "_2";
 
     public static void handleCreation(SerializableGameState gameState, String playerId, String heroName, Map<String, String> args) {
-        System.out.println(gameState.toString());
-        if (!gameState.getConnectedPlayers().containsKey(playerId)) {
-            SerializableHeroEntity newHero = SerializableHeroEntity.builder().id(playerId).heroName(heroName).build();
-            newHero.setHealth(1000);
-            newHero.setXPos(0);
-            newHero.setYPos(0);
-            newHero.setWidth(100);
-            newHero.setHeight(200);
-            newHero.setMoving(false);
-            newHero.setAttacking(false);
-            newHero.setFacingDirection("none");
-            newHero.setMovingEnd(0);
-            newHero.setFalling(false);
-            newHero.setJumping(false);
-            newHero.setMovingStart(0);
-            newHero.setMovingEnd(0);
-            if (heroName.equals(PUMPKIN_NAME)) {
-                newHero.setAbilities(createAbilities(PUMPKIN_NAME));
-            } else if (heroName.equals(REAPER_NAME)) {
-                newHero.setAbilities(createAbilities(REAPER_NAME));
-            }
-            gameState.getConnectedPlayers().put(playerId, newHero);
+        SerializableHeroEntity playerEntity = gameState.getConnectedPlayers().getOrDefault(playerId, null);
+        if (playerEntity == null) {
+            playerEntity = SerializableHeroEntity.builder()
+                    .id(playerId)
+                    .heroName(heroName)
+                    .health(1000)
+                    .xPos(0)
+                    .yPos(0)
+                    .width(100)
+                    .height(200)
+                    .isMoving(false)
+                    .isAttacking(false)
+                    .facingDirection("none")
+                    .movingStart(0)
+                    .movingEnd(0)
+                    .isFalling(false)
+                    .isJumping(false)
+                    .abilities(createAbilities(heroName))
+                    .build();
+            gameState.getConnectedPlayers().put(playerId, playerEntity);
         }
-        System.out.println(gameState.toString());
     }
 
     private static List<SerializableAbilityEntity> createAbilities(String abilityName) {
