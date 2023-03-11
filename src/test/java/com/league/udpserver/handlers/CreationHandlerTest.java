@@ -23,7 +23,7 @@ public class CreationHandlerTest {
         // call the method
         CreationHandler.handleCreation(gameState, playerId, heroName);
 
-        // verify that getConnectedPlayers() was called with playerId
+        // verify that gameState now has a player
         SerializableHeroEntity playerEntity = gameState.getConnectedPlayers().get(playerId);
         assertNotNull(playerEntity);
 
