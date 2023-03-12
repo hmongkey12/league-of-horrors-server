@@ -18,6 +18,7 @@ import java.util.Map;
 @RunWith(MockitoJUnitRunner.class)
 public class UpdateHandlerTest {
 
+    private static final int GROUND_Y_POSITION = 0;
     final int JUMP_CONSTANT = 10;
     final int MAX_JUMP_HEIGHT = 100;
     final int JUMPS_PER_SECOND = 2;
@@ -85,7 +86,7 @@ public class UpdateHandlerTest {
         when(playerEntity.getAttackStart()).thenReturn((float) (System.nanoTime() - MAX_ATTACK_DURATION));
 
         // Trigger: Call update handler method to simulate the player not attacking anymore
-        updateHandler.handleUpdates(gameState, playerId);
+        UpdateHandler.handleUpdates(gameState, playerId);
 
         // Verify: that the player entity is no longer attacking
         verify(playerEntity).setAttacking(false);
@@ -103,7 +104,7 @@ public class UpdateHandlerTest {
         when(playerEntity.getMovingStart()).thenReturn((float) (System.nanoTime() - MAX_MOVE_DURATION));
 
         // Trigger
-        updateHandler.handleUpdates(gameState, playerId);
+        UpdateHandler.handleUpdates(gameState, playerId);
 
         // Verify: that the player entity is no longer moving
         verify(playerEntity).setMoving(false);
@@ -116,13 +117,76 @@ public class UpdateHandlerTest {
     public void playerYPos_shouldIncrease_whenJumpingAndNotAboveMax() {
         // Setup: player is jumping and elapsed jumping time is greater than or equal to JUMPS_PER_SECOND
         when(playerEntity.isJumping()).thenReturn(true);
-        when(playerEntity.getJumpStart()).thenReturn((float) ZERO);
+        when(playerEntity.getJumpStart()).thenReturn((float) JUMPS_PER_SECOND + 1);
         when(playerEntity.getYPos()).thenReturn(MAX_JUMP_HEIGHT - 1);
 
         // Trigger: Call update handler method to simulate the player jumping and updating their y position
-        updateHandler.handleUpdates(gameState, playerId);
+        UpdateHandler.handleUpdates(gameState, playerId);
 
         // Verify: that the player entity's y position is updated by JUMP_CONSTANT
         verify(playerEntity).setYPos(MAX_JUMP_HEIGHT - 1 + JUMP_CONSTANT);
+    }
+
+    @Test
+    public void player_shouldFall_whenMaxJumpHeightReached() {
+        // Setup: player is jumping and elapsed jumping time is greater than or equal to JUMPS_PER_SECOND
+        when(playerEntity.isJumping()).thenReturn(true);
+        when(playerEntity.getJumpStart()).thenReturn((float) JUMPS_PER_SECOND + 1);
+        when(playerEntity.getYPos()).thenReturn(MAX_JUMP_HEIGHT + 1);
+
+        // Trigger
+        UpdateHandler.handleUpdates(gameState, playerId);
+
+        // Verify: that the player entity is falling after reaching max height
+        verify(playerEntity).setFalling(true);
+        verify(playerEntity).setJumping(false);
+    }
+
+    @Test
+    public void playerYPos_shouldDecrease_whenFalling() {
+        // Setup: player is jumping and elapsed jumping time is greater than or equal to JUMPS_PER_SECOND
+        when(playerEntity.isJumping()).thenReturn(false);
+        when(playerEntity.isFalling()).thenReturn(true);
+        when(playerEntity.getJumpStart()).thenReturn((float) JUMPS_PER_SECOND + 1);
+        when(playerEntity.getYPos()).thenReturn(GROUND_Y_POSITION + JUMP_CONSTANT);
+
+        // Trigger: Call update handler method to simulate the player jumping and updating their y position
+        UpdateHandler.handleUpdates(gameState, playerId);
+
+        // Verify: that the player entity's y position is updated by JUMP_CONSTANT
+        verify(playerEntity).setYPos(GROUND_Y_POSITION);
+    }
+
+    @Test
+    public void playerYPos_shouldResetToZero_whenYPosFallsBelowZero() {
+        // Setup: player is jumping and elapsed jumping time is greater than or equal to JUMPS_PER_SECOND
+        when(playerEntity.isJumping()).thenReturn(false);
+        when(playerEntity.isFalling()).thenReturn(true);
+        when(playerEntity.getJumpStart()).thenReturn((float) JUMPS_PER_SECOND + 1);
+        when(playerEntity.getYPos()).thenReturn(GROUND_Y_POSITION - 1);
+
+        // Trigger: Call update handler method to simulate the player jumping and updating their y position
+        UpdateHandler.handleUpdates(gameState, playerId);
+
+        // Verify: that the player entity's y position is updated by JUMP_CONSTANT
+        verify(playerEntity).setYPos(GROUND_Y_POSITION);
+    }
+
+    @Test
+    public void otherPlayerEntity_shouldLoseHealth_whenAttackedByMainPlayer() {
+
+        // Setup
+        SerializableGameState attackingTestGameState = new SerializableGameState();
+        CreationHandler.handleCreation(attackingTestGameState, "PlayerOneId", "pumpkin");
+        CreationHandler.handleCreation(attackingTestGameState, "PlayerTwoId", "reaper");
+        int otherPlayerEntityStartingHealth = attackingTestGameState.getConnectedPlayers().get("PlayerTwoId").getHealth();
+        attackingTestGameState.getConnectedPlayers().get("PlayerOneId").setAttacking(true);
+        attackingTestGameState.getConnectedPlayers().get("PlayerOneId").setAttackStart(System.nanoTime());
+
+        // Trigger
+        UpdateHandler.handleUpdates(attackingTestGameState, "PlayerOneId");
+
+        // Verify: 2 abilities currently are triggered, so health is decreased for each ability since both abilities collide in this testcase
+        assertEquals(otherPlayerEntityStartingHealth - 2, attackingTestGameState.getConnectedPlayers().get("PlayerTwoId").getHealth());
     }
 }
