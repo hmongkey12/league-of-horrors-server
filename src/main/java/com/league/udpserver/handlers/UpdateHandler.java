@@ -19,11 +19,12 @@ public class UpdateHandler {
      */
     public static void handleUpdates(SerializableGameState gameState, String playerId) {
         SerializableHeroEntity playerEntity = gameState.getConnectedPlayers().get(playerId);
+        float currentTime = System.nanoTime();
         float attackStart = playerEntity.getAttackStart();
         float jumpStart = playerEntity.getJumpStart();
-        float attackEnd = System.nanoTime();
-        float movingEnd = attackEnd;
-        float jumpEnd = System.nanoTime();
+        float attackEnd = currentTime;
+        float movingEnd = currentTime;
+        float jumpEnd = currentTime;
         float movingStart = playerEntity.getMovingStart();
         float elapsedAttackTime = (float) Math.floor((attackEnd - attackStart) / 1000);
         float elapsedMovingTime = (float) Math.floor((movingEnd - movingStart) / 1000);
