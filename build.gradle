@@ -7,6 +7,7 @@ plugins {
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 configurations {
     compileOnly {
@@ -16,7 +17,9 @@ configurations {
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
     maven { url 'https://artifactory-oss.prod.netflix.net/artifactory/maven-oss-candidates' }
+
 }
 
 ext {
@@ -24,6 +27,7 @@ ext {
 }
 
 dependencies {
+    implementation 'com.github.hmongkey12:league_of_horrors_shared:1.0.0:plain'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:3.12.4'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -50,3 +54,12 @@ sourceSets {
         java.srcDirs = ['src/test/java']
     }
 }
+
+bootJar {
+    duplicatesStrategy = 'EXCLUDE'
+}
+
+jar {
+    duplicatesStrategy = 'EXCLUDE'
+}
+
