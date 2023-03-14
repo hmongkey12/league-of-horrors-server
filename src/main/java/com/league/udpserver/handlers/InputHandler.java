@@ -44,15 +44,18 @@ public class InputHandler {
                 }
                 break;
             case "skill1":
-                int yPos = playerEntity.getYPos();
-                int xPos = playerEntity.getXPos();
-                playerEntity.setAttacking(true);
-                playerEntity.setMoving(false);
-                playerEntity.getAbilities().get(0).setYPos(yPos);
-                if (playerEntity.getFacingDirection().equals("left")) {
-                    playerEntity.getAbilities().get(0).setXPos(xPos - 200);
-                } else if (playerEntity.getFacingDirection().equals("right")) {
-                    playerEntity.getAbilities().get(0).setXPos(xPos + 200);
+                if (!playerEntity.isAttacking()) {
+                    int yPos = playerEntity.getYPos();
+                    int xPos = playerEntity.getXPos();
+                    playerEntity.setAttacking(true);
+                    playerEntity.setMoving(false);
+                    playerEntity.getAbilities().get(0).setYPos(yPos);
+                    playerEntity.setAttackStart(System.nanoTime());
+                    if (playerEntity.getFacingDirection().equals("left")) {
+                        playerEntity.getAbilities().get(0).setXPos(xPos - 200);
+                    } else if (playerEntity.getFacingDirection().equals("right")) {
+                        playerEntity.getAbilities().get(0).setXPos(xPos + 200);
+                    }
                 }
                 break;
         }
