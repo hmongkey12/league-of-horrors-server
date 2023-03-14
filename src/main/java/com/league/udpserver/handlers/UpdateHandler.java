@@ -9,7 +9,10 @@ public class UpdateHandler {
     private static final int JUMP_CONSTANT = 10;
     private static final int MAX_JUMP_HEIGHT = 100;
     private static final int GROUND_Y_POSITION = 0;
-    private static final int JUMPS_PER_SECOND = 2;
+    private static final float JUMPS_PER_SECOND = 2.0f;
+    private static final float MAX_ATTACK_DURATION = 2.0f;
+    private static final float MAX_MOVEMENT_DURATION = 0.5f;
+    private static final float CONVERT_TO_SECONDS_CONSTANT = 1000000000.0f;
 
     /**
      Updates the game state based on the actions and events happening in the game for a specific player identified by the given playerId. The method updates the player's state including their attacking, moving, and jumping properties based on the elapsed time since their last action. It also checks for collisions with other players' abilities and decrements health points accordingly.
@@ -26,11 +29,11 @@ public class UpdateHandler {
         float movingEnd = currentTime;
         float jumpEnd = currentTime;
         float movingStart = playerEntity.getMovingStart();
-        float elapsedAttackTime = (float) Math.floor((attackEnd - attackStart) / 1000);
-        float elapsedMovingTime = (float) Math.floor((movingEnd - movingStart) / 1000);
-        float elapsedJumpingTime = (float) Math.floor((jumpEnd - jumpStart) / 1000);
+        float elapsedAttackTime = (attackEnd - attackStart) / CONVERT_TO_SECONDS_CONSTANT;
+        float elapsedMovingTime = (movingEnd - movingStart) / CONVERT_TO_SECONDS_CONSTANT;
+        float elapsedJumpingTime = (jumpEnd - jumpStart) / CONVERT_TO_SECONDS_CONSTANT;
 
-        if (playerEntity.isAttacking() && elapsedAttackTime >= 5) {
+        if (playerEntity.isAttacking() && elapsedAttackTime >= MAX_ATTACK_DURATION) {
             playerEntity.setAttacking(false);
             playerEntity.setAttackStart(0);
             playerEntity.setAttackEnd(0);
@@ -48,7 +51,7 @@ public class UpdateHandler {
             }));
         }
 
-        if (playerEntity.isMoving() && elapsedMovingTime >= .5) {
+        if (playerEntity.isMoving() && elapsedMovingTime >= MAX_MOVEMENT_DURATION) {
             playerEntity.setMoving(false);
             playerEntity.setMovingStart(0);
             playerEntity.setMovingEnd(0);
