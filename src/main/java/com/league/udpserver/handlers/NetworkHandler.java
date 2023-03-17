@@ -2,7 +2,6 @@ package com.league.udpserver.handlers;
 
 import com.serializers.BasicSerializer;
 import com.serializers.SerializableGameStateDecorator;
-import com.serializers.SerializableHeroEntity;
 import lombok.Data;
 
 import com.serializers.SerializableGameState;
@@ -13,6 +12,11 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 
 @Data
 public class NetworkHandler {
@@ -20,7 +24,9 @@ public class NetworkHandler {
    private DatagramPacket incomingDatagramPacket;
    private DatagramPacket outgoingDatagramPacket;
    private InetAddress serverIpAddress;
-   private static final double TIME_THRESHOLD_SECONDS = 10.0;
+   private ScheduledExecutorService heartbeatExecutor;
+
+    private static final double TIME_THRESHOLD_SECONDS = 10.0;
 
 
    private byte[] incomingDatagramPacketBuffer = new byte[16000];
@@ -32,13 +38,15 @@ public class NetworkHandler {
    private Map<String, String> mappedJsonString;
    private SerializableGameState gameState;
 
-   private HashMap<String, Long> connectedPlayers;
+   private ConcurrentHashMap<String, Long> connectedPlayers;
 
-   private ApplicationContext applicationContext;
+
+    private ApplicationContext applicationContext;
    private JSONParser jsonParser;
    public NetworkHandler (SerializableGameState gameState) {
        this.gameState = gameState;
-       connectedPlayers = new HashMap<>();
+       connectedPlayers = new ConcurrentHashMap<>();
+       heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();
        try {
            serverSocket = new DatagramSocket(SERVER_PORT);
            serverIpAddress = InetAddress.getByName("127.0.0.1");
@@ -52,6 +60,8 @@ public class NetworkHandler {
 
    public void listen() {
        String incomingString;
+       heartbeatExecutor.scheduleAtFixedRate(() -> useHeartBeatToRemoveDisconnectedPlayers(gameState),
+               0, TimeUnit.SECONDS.toMillis((long) TIME_THRESHOLD_SECONDS), TimeUnit.MILLISECONDS);
        while (true) {
            try {
                serverSocket.receive(incomingDatagramPacket);
@@ -66,7 +76,7 @@ public class NetworkHandler {
                    String playerId = args[1];
                    String heroName = args[0];
                    CreationHandler.handleCreation(gameState, playerId, heroName);
-                   connectedPlayers.put(playerId, System.nanoTime());
+                   connectedPlayers.put(playerId, System.currentTimeMillis());
                    SerializableGameStateDecorator serializableGameStateDecorator = new SerializableGameStateDecorator(new BasicSerializer());
 //                   byte[] serializedData = serializableGameStateDecorator.serialize(gameState);
 //                   byte[] compressedData = DatagramCompressor.compress(serializedData);
@@ -76,7 +86,7 @@ public class NetworkHandler {
                        incomingDatagramPacket.getAddress(), incomingDatagramPacket.getPort()));
                }  else if (mappedJsonString.containsKey("getUpdate") && connectedPlayers.containsKey(mappedJsonString.get("getUpdate"))) {
                    UpdateHandler.handleUpdates(gameState, mappedJsonString.get("getUpdate"));
-                   connectedPlayers.put(mappedJsonString.get("getUpdate"), System.nanoTime());
+                   connectedPlayers.put(mappedJsonString.get("getUpdate"), System.currentTimeMillis());
                    SerializableGameStateDecorator serializableGameStateDecorator = new SerializableGameStateDecorator(new BasicSerializer());
                    outgoingDatagramPacketBuffer = serializableGameStateDecorator.serialize(gameState);
                    serverSocket.send(new DatagramPacket(outgoingDatagramPacketBuffer, outgoingDatagramPacketBuffer.length,
@@ -92,13 +102,13 @@ public class NetworkHandler {
 
     private void useHeartBeatToRemoveDisconnectedPlayers(SerializableGameState gameState) {
         if (connectedPlayers != null) {
+            ConcurrentHashMap<String, Long> connectedPlayersCopy = new ConcurrentHashMap<>(connectedPlayers);
             long currentTime = System.currentTimeMillis();
-            connectedPlayers.forEach((playerId, timeToLive) -> {
+            connectedPlayersCopy.forEach((playerId, timeToLive) -> {
                 double deltaTime = (double)(currentTime - timeToLive) / 1000.0;
-                System.out.println(deltaTime);
                 if (deltaTime > TIME_THRESHOLD_SECONDS) {
-                    System.out.println("Player " + playerId + " disconnected.");
                     gameState.getConnectedPlayers().remove(playerId);
+                    connectedPlayers.remove(playerId);
                 }
             });
         }
