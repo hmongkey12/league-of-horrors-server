@@ -27,7 +27,7 @@ ext {
 }
 
 dependencies {
-    implementation 'com.github.hmongkey12:league_of_horrors_shared:1.0.0:plain'
+    implementation 'com.github.hmongkey12:league_of_horrors_shared:1.0.2:plain'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:3.12.4'
     implementation 'org.springframework.boot:spring-boot-starter-web'
