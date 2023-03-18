@@ -20,43 +20,44 @@ import java.util.concurrent.TimeUnit;
 
 @Data
 public class NetworkHandler {
-   private DatagramSocket serverSocket;
-   private DatagramPacket incomingDatagramPacket;
-   private DatagramPacket outgoingDatagramPacket;
-   private InetAddress serverIpAddress;
-   private ScheduledExecutorService heartbeatExecutor;
-
+    private static final int CLIENT_PORT = 8085;
+    private static final int SERVER_PORT = 8086;
     private static final double TIME_THRESHOLD_SECONDS = 10.0;
+    private static final int INCOMING_BUFFER_SIZE = 16000;
+    private static final int OUTGOING_BUFFER_SIZE = 16000;
+    private static final String LOCALHOST_ADDRESS = "127.0.0.1";
+    private static final String RECEIVED_MESSAGE = "received";
 
+    private DatagramSocket serverSocket;
+    private DatagramPacket incomingDatagramPacket;
+    private DatagramPacket outgoingDatagramPacket;
+    private InetAddress serverIpAddress;
+    private ScheduledExecutorService heartbeatExecutor;
 
-   private byte[] incomingDatagramPacketBuffer = new byte[16000];
-   private byte[] outgoingDatagramPacketBuffer = new byte[16000];
+    private byte[] incomingDatagramPacketBuffer = new byte[INCOMING_BUFFER_SIZE];
+    private byte[] outgoingDatagramPacketBuffer = new byte[OUTGOING_BUFFER_SIZE];
 
-   public static final int CLIENT_PORT = 8085;
-   public static final int SERVER_PORT = 8086;
+    private Map<String, String> mappedJsonString;
+    private SerializableGameState gameState;
 
-   private Map<String, String> mappedJsonString;
-   private SerializableGameState gameState;
-
-   private ConcurrentHashMap<String, Long> connectedPlayers;
-
+    private ConcurrentHashMap<String, Long> connectedPlayers;
 
     private ApplicationContext applicationContext;
-   private JSONParser jsonParser;
-   public NetworkHandler (SerializableGameState gameState) {
-       this.gameState = gameState;
-       connectedPlayers = new ConcurrentHashMap<>();
-       heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();
-       try {
-           serverSocket = new DatagramSocket(SERVER_PORT);
-           serverIpAddress = InetAddress.getByName("127.0.0.1");
-           incomingDatagramPacket = new DatagramPacket(incomingDatagramPacketBuffer, incomingDatagramPacketBuffer.length);
-           outgoingDatagramPacket = new DatagramPacket(outgoingDatagramPacketBuffer, outgoingDatagramPacketBuffer.length);
-           outgoingDatagramPacketBuffer = "received".getBytes();
-       } catch (Exception e) {
-           e.printStackTrace();
-       }
-   }
+    private JSONParser jsonParser;
+    public NetworkHandler(SerializableGameState gameState) {
+        this.gameState = gameState;
+        connectedPlayers = new ConcurrentHashMap<>();
+        heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();
+        try {
+            serverSocket = new DatagramSocket(SERVER_PORT);
+            serverIpAddress = InetAddress.getByName(LOCALHOST_ADDRESS);
+            incomingDatagramPacket = new DatagramPacket(incomingDatagramPacketBuffer, incomingDatagramPacketBuffer.length);
+            outgoingDatagramPacket = new DatagramPacket(outgoingDatagramPacketBuffer, outgoingDatagramPacketBuffer.length);
+            outgoingDatagramPacketBuffer = RECEIVED_MESSAGE.getBytes();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
    public void listen() {
        String incomingString;

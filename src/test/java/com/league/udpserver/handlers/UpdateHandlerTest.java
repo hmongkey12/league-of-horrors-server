@@ -1,4 +1,5 @@
 package com.league.udpserver.handlers;
+
 import com.serializers.SerializableAbilityEntity;
 import com.serializers.SerializableGameState;
 import com.serializers.SerializableHeroEntity;
@@ -95,7 +96,7 @@ public class UpdateHandlerTest {
     }
 
     @Test
-    public void player_ShouldStopMoving_afterElapsedTimeHasPassed() {
+    public void player_ShouldStopMoving_whenElapsedTimeHasPassed() {
 
         // Setup: player is jumping
         when(playerEntity.isAttacking()).thenReturn(false);
