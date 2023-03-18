@@ -11,6 +11,7 @@ import org.springframework.context.ApplicationContext;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -95,8 +96,12 @@ public class NetworkHandler {
                } else {
                    System.out.println("it is not a command");
                }
-           } catch (Exception e) {
+           } catch(SocketException e) {
                e.printStackTrace();
+               break;
+           }catch (Exception e) {
+               e.printStackTrace();
+               break;
            }
        }
    }
@@ -112,6 +117,11 @@ public class NetworkHandler {
                     connectedPlayers.remove(playerId);
                 }
             });
+        }
+    }
+    public void closeServerSocket() {
+        if (serverSocket != null) {
+            serverSocket.close();
         }
     }
 }
