@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class NetworkHandler {
     private static final int CLIENT_PORT = 8085;
     private static final int SERVER_PORT = 8086;
-    private static final double TIME_THRESHOLD_SECONDS = 10.0;
+    public static final double TIME_THRESHOLD_SECONDS = 10.0;
     private static final int INCOMING_BUFFER_SIZE = 16000;
     private static final int OUTGOING_BUFFER_SIZE = 16000;
     private static final String LOCALHOST_ADDRESS = "127.0.0.1";

@@ -10,10 +10,16 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -120,5 +126,32 @@ public class NetworkHandlerTest {
         // Verify: check if CreationHandler.handleCreation is called with the correct args
         PowerMockito.verifyStatic(CreationHandler.class, times(1));
         CreationHandler.handleCreation(any(SerializableGameState.class), eq("playerid"), eq("heroName"));
+    }
+
+
+    @Test
+    public void connectedPlayer_shouldBeRemoved_whenHeartbeatThresholdExceeded() throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        // Setup
+        SerializableGameState gameState = new SerializableGameState();
+        NetworkHandler networkHandler = new NetworkHandler(gameState);
+        String playerId = "playerid";
+
+        // Access the private connectedPlayers field using reflection, since methods are private
+        Field connectedPlayersField = NetworkHandler.class.getDeclaredField("connectedPlayers");
+        connectedPlayersField.setAccessible(true);
+        ConcurrentHashMap<String, Long> connectedPlayers = (ConcurrentHashMap<String, Long>) connectedPlayersField.get(networkHandler);
+
+        // Add a player to connectedPlayers
+        connectedPlayers.put(playerId, System.currentTimeMillis() - TimeUnit.SECONDS.toMillis((long) (NetworkHandler.TIME_THRESHOLD_SECONDS + 1)));
+
+        // Access the private useHeartBeatToRemoveDisconnectedPlayers method
+        Method useHeartBeatToRemoveDisconnectedPlayersMethod = NetworkHandler.class.getDeclaredMethod("useHeartBeatToRemoveDisconnectedPlayers", SerializableGameState.class);
+        useHeartBeatToRemoveDisconnectedPlayersMethod.setAccessible(true);
+
+        // Invoke useHeartBeatToRemoveDisconnectedPlayers
+        useHeartBeatToRemoveDisconnectedPlayersMethod.invoke(networkHandler, gameState);
+
+        // Verify that the player is removed
+        assertFalse(connectedPlayers.containsKey(playerId));
     }
 }
