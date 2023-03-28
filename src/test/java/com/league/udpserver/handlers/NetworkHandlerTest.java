@@ -1,6 +1,7 @@
 package com.league.udpserver.handlers;
 
 import com.serializers.SerializableGameState;
+import com.serializers.SerializableHeroEntity;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -19,10 +21,10 @@ import java.net.InetAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 public class NetworkHandlerTest {
@@ -37,7 +39,7 @@ public class NetworkHandlerTest {
     private InetAddress serverIpAddress;
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws IOException, InterruptedException {
         SerializableGameState gameState = new SerializableGameState();
         networkHandler = new NetworkHandler(gameState);
         serverIpAddress = InetAddress.getByName(SERVER_IP_ADDRESS);
