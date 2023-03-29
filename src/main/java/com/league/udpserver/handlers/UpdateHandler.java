@@ -57,26 +57,7 @@ public class UpdateHandler {
             playerEntity.setMovingEnd(0);
         }
 
-        if (elapsedJumpingTime >= JUMPS_PER_SECOND) {
-            int yPos = playerEntity.getYPos();
-            if (playerEntity.isJumping()) {
-                if (yPos < MAX_JUMP_HEIGHT) {
-                    yPos += JUMP_CONSTANT;
-                    playerEntity.setYPos(yPos);
-                } else {
-                    playerEntity.setJumping(false);
-                    playerEntity.setFalling(true);
-                }
-            } else if (playerEntity.isFalling()) {
-                if (yPos > GROUND_Y_POSITION) {
-                    yPos -= JUMP_CONSTANT;
-                    playerEntity.setYPos(yPos);
-                } else {
-                    playerEntity.setYPos(GROUND_Y_POSITION);
-                    playerEntity.setFalling(false);
-                }
-            }
-        }
+        updatePlayerEntityPosition(playerEntity, elapsedJumpingTime);
     }
 
 
@@ -97,5 +78,49 @@ public class UpdateHandler {
                 secondEntityXPosEnd < firstEntity.getXPos() ||
                 firstEntityYPosEnd < secondEntity.getYPos() ||
                 firstEntity.getYPos() > secondEntityYPosEnd);
+    }
+
+    /**
+     * Updates the player's position based on their current jumping or falling state.
+     * If the player is jumping, they will reach a certain height where they can no longer go beyond.
+     * If they are falling, they will reach a certain ground level that they can no longer go below.
+     * @param playerEntity represents the shared serializable player state object that can be passed between server and client
+     * @param elapsedJumpingTime the duration of the player's jump in seconds
+     */
+    private static void updatePlayerEntityPosition(SerializableHeroEntity playerEntity, double elapsedJumpingTime) {
+        if (elapsedJumpingTime >= JUMPS_PER_SECOND) {
+            if (playerEntity.isJumping()) {
+                handleJumping(playerEntity);
+            } else if (playerEntity.isFalling()) {
+                handleFalling(playerEntity);
+            }
+        }
+    }
+
+    /**
+     * Handles the player's jumping state and updates their vertical position accordingly.
+     * When the player reaches the maximum jump height, they will stop jumping and start falling.
+     * @param playerEntity represents the shared serializable player state object that can be passed between server and client
+     */
+    private static void handleJumping(SerializableHeroEntity playerEntity) {
+        int yPos = playerEntity.getYPos();
+        yPos = (yPos < MAX_JUMP_HEIGHT) ? yPos + JUMP_CONSTANT : yPos;
+        playerEntity.setYPos(yPos);
+        if (yPos >= MAX_JUMP_HEIGHT) {
+            playerEntity.setJumping(false);
+            playerEntity.setFalling(true);
+        }
+    }
+
+    /**
+     * Handles the player's falling state and updates their vertical position accordingly.
+     * When the player reaches the ground level, they will stop falling.
+     * @param playerEntity represents the shared serializable player state object that can be passed between server and client
+     */
+    private static void handleFalling(SerializableHeroEntity playerEntity) {
+        int yPos = playerEntity.getYPos();
+        yPos = (yPos > GROUND_Y_POSITION) ? yPos - JUMP_CONSTANT : GROUND_Y_POSITION;
+        playerEntity.setYPos(yPos);
+        playerEntity.setFalling(yPos != GROUND_Y_POSITION);
     }
 }
