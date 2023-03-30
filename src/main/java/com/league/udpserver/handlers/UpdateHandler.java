@@ -25,38 +25,13 @@ public class UpdateHandler {
         float currentTime = System.nanoTime();
         float attackStart = playerEntity.getAttackStart();
         float jumpStart = playerEntity.getJumpStart();
-        float attackEnd = currentTime;
-        float movingEnd = currentTime;
-        float jumpEnd = currentTime;
         float movingStart = playerEntity.getMovingStart();
-        float elapsedAttackTime = (attackEnd - attackStart) / CONVERT_TO_SECONDS_CONSTANT;
-        float elapsedMovingTime = (movingEnd - movingStart) / CONVERT_TO_SECONDS_CONSTANT;
-        float elapsedJumpingTime = (jumpEnd - jumpStart) / CONVERT_TO_SECONDS_CONSTANT;
+        float elapsedAttackTime = (currentTime - attackStart) / CONVERT_TO_SECONDS_CONSTANT;
+        float elapsedMovingTime = (currentTime - movingStart) / CONVERT_TO_SECONDS_CONSTANT;
+        float elapsedJumpingTime = (currentTime - jumpStart) / CONVERT_TO_SECONDS_CONSTANT;
 
-        if (playerEntity.isAttacking() && elapsedAttackTime >= MAX_ATTACK_DURATION) {
-            playerEntity.setAttacking(false);
-            playerEntity.setAttackStart(0);
-            playerEntity.setAttackEnd(0);
-        } else if (playerEntity.isAttacking()) {
-            gameState.getConnectedPlayers().forEach(((s, serializableHeroEntity) -> {
-                if (!serializableHeroEntity.getId().equals(playerId)) {
-                    playerEntity.getAbilities().forEach(serializableAbilityEntity -> {
-                        if (doEntitiesCollide(serializableHeroEntity, serializableAbilityEntity)) {
-                            int health = serializableHeroEntity.getHealth();
-                            health -= 1;
-                            serializableHeroEntity.setHealth(health);
-                        }
-                    });
-                }
-            }));
-        }
-
-        if (playerEntity.isMoving() && elapsedMovingTime >= MAX_MOVEMENT_DURATION) {
-            playerEntity.setMoving(false);
-            playerEntity.setMovingStart(0);
-            playerEntity.setMovingEnd(0);
-        }
-
+        handleAttackLogic(gameState, playerEntity, elapsedAttackTime);
+        handleMovementLogic(playerEntity, elapsedMovingTime);
         updatePlayerEntityPosition(playerEntity, elapsedJumpingTime);
     }
 
@@ -122,5 +97,54 @@ public class UpdateHandler {
         yPos = (yPos > GROUND_Y_POSITION) ? yPos - JUMP_CONSTANT : GROUND_Y_POSITION;
         playerEntity.setYPos(yPos);
         playerEntity.setFalling(yPos != GROUND_Y_POSITION);
+    }
+
+    /**
+     * Handles the player's attack state and updates their attack state.
+     * If the player is attacking, it checks for collisions with other player's abilities and reduces health points
+     * @param gameState the current state of the game represented as a SerializableGameState object
+     * @param playerEntity represents the shared serializable player state object that can be passed between server and client
+     * @param elapsedAttackTime the duration of the player's attack in seconds
+     */
+    private static void handleAttackLogic(SerializableGameState gameState, SerializableHeroEntity playerEntity, float elapsedAttackTime) {
+        if (playerEntity.isAttacking() && elapsedAttackTime >= MAX_ATTACK_DURATION) {
+            playerEntity.setAttacking(false);
+            playerEntity.setAttackStart(0);
+            playerEntity.setAttackEnd(0);
+        } else if (playerEntity.isAttacking()) {
+            checkForCollision(gameState, playerEntity);
+        }
+    }
+
+    /**
+     * Checks for collisions with other players' abilities and decrements health points accordingly.
+     * @param gameState the current state of the game represented as a SerializableGameState object
+     * @param playerEntity represents the shared serializable player state object that can be passed between server and client
+     */
+    private static void checkForCollision(SerializableGameState gameState, SerializableHeroEntity playerEntity) {
+        gameState.getConnectedPlayers().values().stream()
+                .filter(serializableHeroEntity -> !serializableHeroEntity.getId().equals(playerEntity.getId()))
+                .forEach(serializableHeroEntity -> {
+                    playerEntity.getAbilities().forEach(serializableAbilityEntity -> {
+                        if (doEntitiesCollide(serializableHeroEntity, serializableAbilityEntity)) {
+                            int health = serializableHeroEntity.getHealth();
+                            health -= 1;
+                            serializableHeroEntity.setHealth(health);
+                        }
+                    });
+                });
+    }
+
+    /**
+     * Handles the player's movement state and updates their position
+     * @param playerEntity represents the shared serializable player state object that can be passed between server and client
+     * @param elapsedMovingTime the duration of the player's movement in seconds
+     */
+    private static void handleMovementLogic(SerializableHeroEntity playerEntity, float elapsedMovingTime) {
+        if (playerEntity.isMoving() && elapsedMovingTime >= MAX_MOVEMENT_DURATION) {
+            playerEntity.setMoving(false);
+            playerEntity.setMovingStart(0);
+            playerEntity.setMovingEnd(0);
+        }
     }
 }
