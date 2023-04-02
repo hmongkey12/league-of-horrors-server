@@ -6,8 +6,10 @@ import lombok.Data;
 
 import com.serializers.SerializableGameState;
 import org.apache.tomcat.util.json.JSONParser;
+import org.apache.tomcat.util.json.ParseException;
 import org.springframework.context.ApplicationContext;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -60,51 +62,31 @@ public class NetworkHandler {
         }
     }
 
-   public void listen() {
-       String incomingString;
-       heartbeatExecutor.scheduleAtFixedRate(() -> useHeartBeatToRemoveDisconnectedPlayers(gameState),
-               0, TimeUnit.SECONDS.toMillis((long) TIME_THRESHOLD_SECONDS), TimeUnit.MILLISECONDS);
-       while (true) {
-           try {
-               serverSocket.receive(incomingDatagramPacket);
-               incomingString = new String(incomingDatagramPacket.getData(), 0, incomingDatagramPacket.getLength());
-               jsonParser = new JSONParser(incomingString);
-               mappedJsonString = (Map<String, String>) jsonParser.parse();
-               if (mappedJsonString.containsKey("command")) {
-                   String[] args = mappedJsonString.get("command").split("_");
-                   InputHandler.handleInput(gameState, args);
-               } else if(mappedJsonString.containsKey("createHero")) {
-                   String[] args = mappedJsonString.get("createHero").split("_");
-                   String playerId = args[1];
-                   String heroName = args[0];
-                   CreationHandler.handleCreation(gameState, playerId, heroName);
-                   connectedPlayers.put(playerId, System.currentTimeMillis());
-                   SerializableGameStateDecorator serializableGameStateDecorator = new SerializableGameStateDecorator(new BasicSerializer());
-//                   byte[] serializedData = serializableGameStateDecorator.serialize(gameState);
-//                   byte[] compressedData = DatagramCompressor.compress(serializedData);
-//                   outgoingDatagramPacketBuffer = compressedData;
-                   outgoingDatagramPacketBuffer = serializableGameStateDecorator.serialize(gameState);
-                   serverSocket.send(new DatagramPacket(outgoingDatagramPacketBuffer, outgoingDatagramPacketBuffer.length,
-                       incomingDatagramPacket.getAddress(), incomingDatagramPacket.getPort()));
-               }  else if (mappedJsonString.containsKey("getUpdate") && connectedPlayers.containsKey(mappedJsonString.get("getUpdate"))) {
-                   UpdateHandler.handleUpdates(gameState, mappedJsonString.get("getUpdate"));
-                   connectedPlayers.put(mappedJsonString.get("getUpdate"), System.currentTimeMillis());
-                   SerializableGameStateDecorator serializableGameStateDecorator = new SerializableGameStateDecorator(new BasicSerializer());
-                   outgoingDatagramPacketBuffer = serializableGameStateDecorator.serialize(gameState);
-                   serverSocket.send(new DatagramPacket(outgoingDatagramPacketBuffer, outgoingDatagramPacketBuffer.length,
-                           incomingDatagramPacket.getAddress(), incomingDatagramPacket.getPort()));
-               } else {
-                   System.out.println("it is not a command");
-               }
-           } catch(SocketException e) {
-               e.printStackTrace();
-               break;
-           }catch (Exception e) {
-               e.printStackTrace();
-               break;
-           }
-       }
-   }
+    public void listen() {
+        scheduleHeartbeatTask();
+        while (true) {
+            try {
+                receiveIncomingPacket();
+                parseIncomingPacket();
+
+                if (mappedJsonString.containsKey("command")) {
+                    handleCommand();
+                } else if (mappedJsonString.containsKey("createHero")) {
+                    handleCreateHero();
+                } else if (isGetUpdate()) {
+                    handleGetUpdate();
+                } else {
+                    System.out.println("it is not a command");
+                }
+            } catch (SocketException e) {
+                e.printStackTrace();
+                break;
+            } catch (Exception e) {
+                e.printStackTrace();
+                break;
+            }
+        }
+    }
 
     private void useHeartBeatToRemoveDisconnectedPlayers(SerializableGameState gameState) {
         if (connectedPlayers != null) {
@@ -123,5 +105,51 @@ public class NetworkHandler {
         if (serverSocket != null) {
             serverSocket.close();
         }
+    }
+
+    private void scheduleHeartbeatTask() {
+        heartbeatExecutor.scheduleAtFixedRate(() -> useHeartBeatToRemoveDisconnectedPlayers(gameState),
+                0, TimeUnit.SECONDS.toMillis((long) TIME_THRESHOLD_SECONDS), TimeUnit.MILLISECONDS);
+    }
+
+    private void receiveIncomingPacket() throws IOException {
+        serverSocket.receive(incomingDatagramPacket);
+    }
+
+    private void parseIncomingPacket() throws ParseException {
+        String incomingString = new String(incomingDatagramPacket.getData(), 0, incomingDatagramPacket.getLength());
+        jsonParser = new JSONParser(incomingString);
+        mappedJsonString = (Map<String, String>) jsonParser.parse();
+    }
+
+    private void handleCommand() {
+        String[] args = mappedJsonString.get("command").split("_");
+        InputHandler.handleInput(gameState, args);
+    }
+
+    private void handleCreateHero() throws IOException {
+        String[] args = mappedJsonString.get("createHero").split("_");
+        String playerId = args[1];
+        String heroName = args[0];
+        CreationHandler.handleCreation(gameState, playerId, heroName);
+        connectedPlayers.put(playerId, System.currentTimeMillis());
+        sendSerializedGameState();
+    }
+
+    private boolean isGetUpdate() {
+        return mappedJsonString.containsKey("getUpdate") && connectedPlayers.containsKey(mappedJsonString.get("getUpdate"));
+    }
+
+    private void handleGetUpdate() throws IOException {
+        UpdateHandler.handleUpdates(gameState, mappedJsonString.get("getUpdate"));
+        connectedPlayers.put(mappedJsonString.get("getUpdate"), System.currentTimeMillis());
+        sendSerializedGameState();
+    }
+
+    private void sendSerializedGameState() throws IOException {
+        SerializableGameStateDecorator serializableGameStateDecorator = new SerializableGameStateDecorator(new BasicSerializer());
+        outgoingDatagramPacketBuffer = serializableGameStateDecorator.serialize(gameState);
+        serverSocket.send(new DatagramPacket(outgoingDatagramPacketBuffer, outgoingDatagramPacketBuffer.length,
+                incomingDatagramPacket.getAddress(), incomingDatagramPacket.getPort()));
     }
 }
